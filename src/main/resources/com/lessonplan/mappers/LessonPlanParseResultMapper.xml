@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lessonplan.mappers.LessonPlanParseResultMapper">
+
+    <resultMap id="base_result_map" type="com.lessonplan.entity.po.LessonPlanParseResult">
+        <id column="id" property="id"/>
+        <result column="lesson_plan_id" property="lessonPlanId"/>
+        <result column="title" property="title"/>
+        <result column="grade_level" property="gradeLevel"/>
+        <result column="subject" property="subject"/>
+        <result column="teaching_objectives" property="teachingObjectives"/>
+        <result column="keywords" property="keywords"/>
+        <result column="summary" property="summary"/>
+        <result column="duration" property="duration"/>
+        <result column="model_name" property="modelName"/>
+        <result column="is_mock" property="isMock"/>
+        <result column="fail_reason" property="failReason"/>
+        <result column="parse_time" property="parseTime"/>
+    </resultMap>
+
+    <sql id="base_column_list">
+        id, lesson_plan_id, title, grade_level, subject, teaching_objectives, keywords,
+        summary, duration, model_name, is_mock, fail_reason, parse_time
+    </sql>
+
+    <insert id="insert">
+        INSERT INTO lesson_plan_parse_result
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bean.lessonPlanId != null">lesson_plan_id,</if>
+            <if test="bean.title != null">title,</if>
+            <if test="bean.gradeLevel != null">grade_level,</if>
+            <if test="bean.subject != null">subject,</if>
+            <if test="bean.teachingObjectives != null">teaching_objectives,</if>
+            <if test="bean.keywords != null">keywords,</if>
+            <if test="bean.summary != null">summary,</if>
+            <if test="bean.duration != null">duration,</if>
+            <if test="bean.modelName != null">model_name,</if>
+            <if test="bean.isMock != null">is_mock,</if>
+            <if test="bean.failReason != null">fail_reason,</if>
+            <if test="bean.parseTime != null">parse_time,</if>
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="bean.lessonPlanId != null">#{bean.lessonPlanId},</if>
+            <if test="bean.title != null">#{bean.title},</if>
+            <if test="bean.gradeLevel != null">#{bean.gradeLevel},</if>
+            <if test="bean.subject != null">#{bean.subject},</if>
+            <if test="bean.teachingObjectives != null">#{bean.teachingObjectives},</if>
+            <if test="bean.keywords != null">#{bean.keywords},</if>
+            <if test="bean.summary != null">#{bean.summary},</if>
+            <if test="bean.duration != null">#{bean.duration},</if>
+            <if test="bean.modelName != null">#{bean.modelName},</if>
+            <if test="bean.isMock != null">#{bean.isMock},</if>
+            <if test="bean.failReason != null">#{bean.failReason},</if>
+            <if test="bean.parseTime != null">#{bean.parseTime},</if>
+        </trim>
+    </insert>
+
+    <select id="selectByLessonPlanId" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM lesson_plan_parse_result
+        WHERE lesson_plan_id = #{lessonPlanId}
+    </select>
+
+    <select id="selectById" resultMap="base_result_map">
+        SELECT <include refid="base_column_list"/>
+        FROM lesson_plan_parse_result
+        WHERE id = #{id}
+    </select>
+
+    <update id="updateByLessonPlanId">
+        UPDATE lesson_plan_parse_result
+        <set>
+            <if test="bean.title != null">title = #{bean.title},</if>
+            <if test="bean.gradeLevel != null">grade_level = #{bean.gradeLevel},</if>
+            <if test="bean.subject != null">subject = #{bean.subject},</if>
+            <if test="bean.teachingObjectives != null">teaching_objectives = #{bean.teachingObjectives},</if>
+            <if test="bean.keywords != null">keywords = #{bean.keywords},</if>
+            <if test="bean.summary != null">summary = #{bean.summary},</if>
+            <if test="bean.duration != null">duration = #{bean.duration},</if>
+            <if test="bean.modelName != null">model_name = #{bean.modelName},</if>
+            <if test="bean.isMock != null">is_mock = #{bean.isMock},</if>
+            <if test="bean.failReason != null">fail_reason = #{bean.failReason},</if>
+            <if test="bean.parseTime != null">parse_time = #{bean.parseTime},</if>
+        </set>
+        WHERE lesson_plan_id = #{lessonPlanId}
+    </update>
+
+    <delete id="deleteByLessonPlanId">
+        DELETE FROM lesson_plan_parse_result WHERE lesson_plan_id = #{lessonPlanId}
+    </delete>
+
+</mapper>
