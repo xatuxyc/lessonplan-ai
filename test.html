@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教案AI解析系统 - 测试</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 28px;
+      color: #1a202c;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #718096;
+      font-size: 14px;
+    }
+    .config-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      margin-bottom: 24px;
+    }
+    .config-panel label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #2d3748;
+    }
+    .config-panel input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 768px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .panel {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .panel h2 {
+      font-size: 18px;
+      color: #2d3748;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .upload-area {
+      border: 2px dashed #cbd5e0;
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .upload-area:hover {
+      border-color: #667eea;
+      background: #f7fafc;
+    }
+    .upload-area.dragover {
+      border-color: #667eea;
+      background: #edf2f7;
+    }
+    .upload-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+    .upload-text {
+      color: #718096;
+      font-size: 14px;
+    }
+    .upload-input {
+      display: none;
+    }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #38a169;
+    }
+    .btn-danger {
+      background: #f56565;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #e53e3e;
+    }
+    .btn-info {
+      background: #4299e1;
+      color: white;
+    }
+    .btn-info:hover {
+      background: #3182ce;
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #2d3748;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .file-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .file-item {
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+    }
+    .file-item:hover {
+      border-color: #cbd5e0;
+      background: #f7fafc;
+    }
+    .file-item.selected {
+      border-color: #667eea;
+      background: #edf2f7;
+    }
+    .file-name {
+      font-weight: 500;
+      color: #2d3748;
+      margin-bottom: 4px;
+    }
+    .file-meta {
+      font-size: 12px;
+      color: #718096;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .status-0 { background: #e2e8f0; color: #2d3748; }
+    .status-1 { background: #bee3f8; color: #2b6cb0; }
+    .status-2 { background: #c6f6d5; color: #22543d; }
+    .status-3 { background: #fed7d7; color: #742a2a; }
+    .detail-panel {
+      margin-top: 16px;
+      padding: 16px;
+      background: #f7fafc;
+      border-radius: 8px;
+    }
+    .detail-label {
+      font-weight: 500;
+      color: #4a5568;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+    .detail-value {
+      color: #2d3748;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag {
+      background: #e6fffa;
+      color: #234e52;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+    }
+    .loading {
+      text-align: center;
+      padding: 24px;
+      color: #718096;
+    }
+    .error {
+      background: #fed7d7;
+      color: #742a2a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .success {
+      background: #c6f6d5;
+      color: #22543d;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <div class="header">
+        <h1>📚 教案AI解析系统</h1>
+        <p>上传教案文件，AI自动解析并提取结构化信息</p>
+      </div>
+
+      <div class="config-panel">
+        <label>后端API地址</label>
+        <input v-model="apiBase" placeholder="http://localhost:7072/api" />
+      </div>
+
+      <div v-if="error" class="error">{{ error }}</div>
+      <div v-if="success" class="success">{{ success }}</div>
+
+      <div class="content-grid">
+        <div class="panel">
+          <h2>📤 上传教案文件</h2>
+          
+          <div class="form-group">
+            <label>上传人</label>
+            <input v-model="uploader" placeholder="请输入上传人姓名" />
+          </div>
+
+          <div 
+            class="upload-area" 
+            :class="{ dragover: isDragover }"
+            @click="triggerUpload"
+            @drop="handleDrop"
+            @dragover.prevent="isDragover = true"
+            @dragleave="isDragover = false"
+          >
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">
+              点击或拖拽上传<br/>
+              <small>支持 PDF、DOC、DOCX，最大 50MB</small>
+            </div>
+          </div>
+          <input ref="fileInput" type="file" class="upload-input" @change="handleFileSelect" accept=".pdf,.doc,.docx" />
+
+          <div v-if="selectedFile" style="margin-top: 16px; padding: 12px; background: #f7fafc; border-radius: 8px;">
+            <div style="font-weight: 500;">{{ selectedFile.name }}</div>
+            <div style="font-size: 12px; color: #718096;">{{ formatFileSize(selectedFile.size) }}</div>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <button class="btn btn-primary" @click="uploadFile" :disabled="!selectedFile || uploading">
+              {{ uploading ? '上传中...' : '上传文件' }}
+            </button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>📋 文件列表</h2>
+          
+          <div style="margin-bottom: 16px;">
+            <button class="btn btn-info" @click="loadFileList" :disabled="loading">
+              刷新列表
+            </button>
+          </div>
+
+          <div v-if="loading" class="loading">加载中...</div>
+
+          <div v-else class="file-list">
+            <div v-for="file in fileList" :key="file.id" class="file-item" :class="{ selected: selectedFileId === file.id }" @click="selectFile(file)">
+              <div class="file-name">{{ file.fileName }}</div>
+              <div class="file-meta">
+                <span class="status-badge" :class="'status-' + file.status">
+                  {{ getStatusText(file.status) }}
+                </span>
+                <span style="margin-left: 8px;">{{ file.fileType.toUpperCase() }}</span>
+                <span style="margin-left: 8px;">{{ formatFileSize(file.fileSize) }}</span>
+                <span style="margin-left: 8px;">{{ file.uploader }}</span>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-info" style="font-size: 12px; padding: 6px 12px;" @click.stop="viewDetail(file.id)">查看详情</button>
+                <button class="btn btn-success" style="font-size: 12px; padding: 6px 12px;" @click.stop="parseFile(file.id)" :disabled="file.status === 1">解析</button>
+                <button class="btn btn-danger" style="font-size: 12px; padding: 6px 12px;" @click.stop="deleteFile(file.id)">删除</button>
+              </div>
+            </div>
+            <div v-if="fileList.length === 0" style="text-align: center; color: #718096; padding: 24px;">暂无文件</div>
+          </div>
+
+          <div v-if="selectedDetail" class="detail-panel">
+            <h3 style="margin-bottom: 12px; font-size: 16px;">📄 文件详情</h3>
+            
+            <div class="detail-label">文件名称</div>
+            <div class="detail-value">{{ selectedDetail.lessonPlan.fileName }}</div>
+
+            <div class="detail-label">上传人</div>
+            <div class="detail-value">{{ selectedDetail.lessonPlan.uploader }}</div>
+
+            <div class="detail-label">上传时间</div>
+            <div class="detail-value">{{ selectedDetail.lessonPlan.uploadTime }}</div>
+
+            <div class="detail-label">状态</div>
+            <div class="detail-value">
+              <span class="status-badge" :class="'status-' + selectedDetail.lessonPlan.status">
+                {{ getStatusText(selectedDetail.lessonPlan.status) }}
+              </span>
+            </div>
+
+            <div v-if="selectedDetail.parseResult" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+              <h3 style="margin-bottom: 12px; font-size: 16px;">🤖 AI 解析结果</h3>
+              
+              <div class="detail-label">标题</div>
+              <div class="detail-value">{{ selectedDetail.parseResult.title || '-' }}</div>
+
+              <div class="detail-label">年级</div>
+              <div class="detail-value">{{ selectedDetail.parseResult.gradeLevel || '-' }}</div>
+
+              <div class="detail-label">学科</div>
+              <div class="detail-value">{{ selectedDetail.parseResult.subject || '-' }}</div>
+
+              <div class="detail-label">教学目标</div>
+              <div class="detail-value">
+                <div v-if="selectedDetail.parseResult.teachingObjectives" class="tag-list">
+                  <span v-for="(obj, idx) in parseJsonArray(selectedDetail.parseResult.teachingObjectives)" :key="idx" class="tag">{{ obj }}</span>
+                </div>
+                <span v-else>-</span>
+              </div>
+
+              <div class="detail-label">关键词</div>
+              <div class="detail-value">
+                <div v-if="selectedDetail.parseResult.keywords" class="tag-list">
+                  <span v-for="(kw, idx) in parseJsonArray(selectedDetail.parseResult.keywords)" :key="idx" class="tag">{{ kw }}</span>
+                </div>
+                <span v-else>-</span>
+              </div>
+
+              <div class="detail-label">摘要</div>
+              <div class="detail-value">{{ selectedDetail.parseResult.summary || '-' }}</div>
+
+              <div class="detail-label">解析耗时</div>
+              <div class="detail-value">{{ selectedDetail.parseResult.duration ? selectedDetail.parseResult.duration + 'ms' : '-' }}</div>
+
+              <div class="detail-label">模型</div>
+              <div class="detail-value">{{ selectedDetail.parseResult.modelName || '-' }}</div>
+
+              <div v-if="selectedDetail.parseResult.failReason">
+                <div class="detail-label">失败原因</div>
+                <div class="detail-value" style="color: #742a2a;">{{ selectedDetail.parseResult.failReason }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          apiBase: 'http://localhost:7072/api',
+          uploader: '测试用户',
+          selectedFile: null,
+          selectedFileId: null,
+          selectedDetail: null,
+          fileList: [],
+          uploading: false,
+          loading: false,
+          isDragover: false,
+          error: null,
+          success: null
+        };
+      },
+      mounted() {
+        this.loadFileList();
+      },
+      methods: {
+        getApi(path) {
+          return this.apiBase + path;
+        },
+        showError(msg) {
+          this.error = msg;
+          this.success = null;
+          setTimeout(() => this.error = null, 3000);
+        },
+        showSuccess(msg) {
+          this.success = msg;
+          this.error = null;
+          setTimeout(() => this.success = null, 3000);
+        },
+        triggerUpload() {
+          this.$refs.fileInput.click();
+        },
+        handleFileSelect(e) {
+          if (e.target.files && e.target.files[0]) {
+            this.selectedFile = e.target.files[0];
+          }
+        },
+        handleDrop(e) {
+          e.preventDefault();
+          this.isDragover = false;
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            this.selectedFile = e.dataTransfer.files[0];
+          }
+        },
+        async uploadFile() {
+          if (!this.selectedFile) return;
+          
+          this.uploading = true;
+          this.error = null;
+          
+          try {
+            const formData = new FormData();
+            formData.append('file', this.selectedFile);
+            formData.append('uploader', this.uploader);
+            
+            const response = await axios.post(this.getApi('/lessonplan/upload'), formData, {
+              headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            
+            if (response.data.code === 200 || response.data.status === 'success') {
+              this.showSuccess('上传成功！');
+              this.selectedFile = null;
+              this.$refs.fileInput.value = '';
+              await this.loadFileList();
+              await this.viewDetail(response.data.data.id);
+            } else {
+              this.showError(response.data.message || '上传失败');
+            }
+          } catch (err) {
+            this.showError('上传失败: ' + (err.response?.data?.message || err.message));
+          } finally {
+            this.uploading = false;
+          }
+        },
+        async loadFileList() {
+          this.loading = true;
+          this.error = null;
+          
+          try {
+            const response = await axios.post(this.getApi('/lessonplan/list'), {
+              pageNo: 1,
+              pageSize: 20
+            });
+            
+            if (response.data.code === 200 || response.data.status === 'success') {
+              this.fileList = response.data.data?.list || [];
+            } else {
+              this.showError('加载失败');
+            }
+          } catch (err) {
+            this.showError('加载失败: ' + (err.response?.data?.message || err.message));
+          } finally {
+            this.loading = false;
+          }
+        },
+        selectFile(file) {
+          this.selectedFileId = file.id;
+        },
+        async viewDetail(id) {
+          this.error = null;
+          
+          try {
+            const response = await axios.get(this.getApi('/lessonplan/detail/' + id));
+            
+            if (response.data.code === 200 || response.data.status === 'success') {
+              this.selectedDetail = response.data.data;
+              this.selectedFileId = id;
+            } else {
+              this.showError('获取详情失败');
+            }
+          } catch (err) {
+            this.showError('获取详情失败: ' + (err.response?.data?.message || err.message));
+          }
+        },
+        async parseFile(id) {
+          this.error = null;
+          
+          try {
+            const response = await axios.post(this.getApi('/lessonplan/parse/' + id));
+            
+            if (response.data.code === 200 || response.data.status === 'success') {
+              this.showSuccess('解析任务已提交，请稍后刷新查看结果');
+              
+              await this.loadFileList();
+              
+              let count = 0;
+              const checkStatus = async () => {
+                if (count >= 30) return;
+                count++;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                const statusRes = await axios.get(this.getApi('/lessonplan/parseStatus/' + id));
+                if (statusRes.data.data?.status !== 1) {
+                  await this.viewDetail(id);
+                  await this.loadFileList();
+                } else {
+                  checkStatus();
+                }
+              };
+              checkStatus();
+            } else {
+              this.showError('触发解析失败');
+            }
+          } catch (err) {
+            this.showError('触发解析失败: ' + (err.response?.data?.message || err.message));
+          }
+        },
+        async deleteFile(id) {
+          if (!confirm('确定要删除此文件吗？')) return;
+          
+          this.error = null;
+          
+          try {
+            const response = await axios.delete(this.getApi('/lessonplan/delete/' + id));
+            
+            if (response.data.code === 200 || response.data.status === 'success') {
+              this.showSuccess('删除成功！');
+              if (this.selectedFileId === id) {
+                this.selectedFileId = null;
+                this.selectedDetail = null;
+              }
+              await this.loadFileList();
+            } else {
+              this.showError('删除失败');
+            }
+          } catch (err) {
+            this.showError('删除失败: ' + (err.response?.data?.message || err.message));
+          }
+        },
+        formatFileSize(bytes) {
+          if (bytes === 0) return '0 B';
+          const k = 1024;
+          const sizes = ['B', 'KB', 'MB', 'GB'];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        },
+        getStatusText(status) {
+          const map = {
+            0: '已上传',
+            1: '解析中',
+            2: '解析成功',
+            3: '解析失败'
+          };
+          return map[status] || '未知';
+        },
+        parseJsonArray(str) {
+          if (!str) return [];
+          try {
+            const arr = JSON.parse(str);
+            return Array.isArray(arr) ? arr : [];
+          } catch {
+            return [];
+          }
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
