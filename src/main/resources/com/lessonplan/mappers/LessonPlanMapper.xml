@@ -62,7 +62,7 @@
         <include refid="query_condition"/>
     </select>
 
-    <insert id="insert">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="bean.id" keyColumn="id">
         INSERT INTO lesson_plan
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="bean.fileName != null">file_name,</if>
