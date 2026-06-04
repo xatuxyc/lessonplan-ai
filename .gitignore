@@ -1,0 +1,19 @@
+# Compiled class files
+target/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp/test files
+java.pdf
+text.html
+
+# Maven
+*.log

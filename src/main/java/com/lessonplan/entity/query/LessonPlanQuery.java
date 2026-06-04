@@ -1,75 +1,22 @@
 package com.lessonplan.entity.query;
 
-/**
- * 教案文件查询参数
- */
-public class LessonPlanQuery extends BaseParam {
+public class LessonPlanQuery {
+    private Integer pageNo = 1;
+    private Integer pageSize = 20;
 
-    private static final long serialVersionUID = 1L;
-
-    /** 文件名模糊查询 */
-    private String fileNameFuzzy;
-
-    /** 文件类型精确查询 */
-    private String fileType;
-
-    /** 上传人模糊查询 */
-    private String uploaderFuzzy;
-
-    /** 状态精确查询 */
-    private Integer status;
-
-    /** 上传时间起始 */
-    private String uploadTimeStart;
-
-    /** 上传时间结束 */
-    private String uploadTimeEnd;
-
-    public String getFileNameFuzzy() {
-        return fileNameFuzzy;
+    public Integer getPageNo() {
+        return pageNo;
     }
 
-    public void setFileNameFuzzy(String fileNameFuzzy) {
-        this.fileNameFuzzy = fileNameFuzzy;
+    public void setPageNo(Integer pageNo) {
+        this.pageNo = pageNo;
     }
 
-    public String getFileType() {
-        return fileType;
+    public Integer getPageSize() {
+        return pageSize;
     }
 
-    public void setFileType(String fileType) {
-        this.fileType = fileType;
-    }
-
-    public String getUploaderFuzzy() {
-        return uploaderFuzzy;
-    }
-
-    public void setUploaderFuzzy(String uploaderFuzzy) {
-        this.uploaderFuzzy = uploaderFuzzy;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public String getUploadTimeStart() {
-        return uploadTimeStart;
-    }
-
-    public void setUploadTimeStart(String uploadTimeStart) {
-        this.uploadTimeStart = uploadTimeStart;
-    }
-
-    public String getUploadTimeEnd() {
-        return uploadTimeEnd;
-    }
-
-    public void setUploadTimeEnd(String uploadTimeEnd) {
-        this.uploadTimeEnd = uploadTimeEnd;
+    public void setPageSize(Integer pageSize) {
+        this.pageSize = pageSize;
     }
 }
