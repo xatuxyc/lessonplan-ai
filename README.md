@@ -7,8 +7,8 @@
 ## 环境要求
 
 | 依赖 | 版本 | 说明 |
-|------|------|------|
-| JDK | **17** | 必须，不支持 JDK 8/11/21+ |
+|------|------|-----|
+| JDK | **17** | 必须|
 | Maven | 3.6+ | 构建工具 |
 | MySQL | 8.0+ | 数据库 |
 
@@ -351,43 +351,19 @@ curl -X DELETE http://localhost:7072/api/lessonplan/delete/1
 
 | AI 工具 | 用途 |
 |---------|------|
-| Trae IDE (内置 AI) | 代码生成、项目结构设计、代码规范检查、文档编写 |
+| Trae IDE  | 代码生成、项目结构设计、代码规范检查、文档编写 |
 
 ### 让 AI 做了什么
 
-1. **项目结构设计**：让 Trae 分析了参考项目的代码规范（包命名、类命名、注解使用、Mapper XML 结构等），并按照相同规范生成了新项目的完整目录结构。
+1. **项目结构设计**：让 Trae 分析了我自有项目的代码规范（包命名、类命名、注解使用、Mapper XML 结构等），并按照相同规范生成了新项目的完整目录结构。
 
 2. **实体类生成**：让 Trae 根据需求描述生成了 PO/DTO/VO/Query/Enum 等实体类，遵循手写 getter/setter、Serializable、@JsonFormat 等规范。
 
-3. **Mapper XML 生成**：让 Trae 按照 MyBatis XML 模板（resultMap + base_column_list + 动态SQL）生成了完整的 Mapper XML。
 
-4. **Service 层实现**：让 Trae 实现了文件上传、文本提取（PDFBox/POI）、AI 解析调度等核心业务逻辑。
+3**代码规范检查**：让 Trae 检查代码是否符合 Java 编码规范、Spring Boot 最佳实践、MyBatis 使用规范。
 
-5. **AI 解析服务**：让 Trae 设计了 LessonPlanAiService 接口和 Mock 实现，支持后续扩展接入真实模型。
+4**文档生成**：让 Trae 生成了建表 SQL、README、接口说明和自测说明。
 
-6. **代码规范检查**：让 Trae 检查代码是否符合 Java 编码规范、Spring Boot 最佳实践、MyBatis 使用规范。
-
-7. **文档生成**：让 Trae 生成了建表 SQL、README、接口说明和自测说明。
-
-### 我检查并修改了什么
-
-1. **JDK 版本修复**：AI 初始生成使用 JDK 21 + Spring Boot 3.5，我发现评估环境为 JDK 17，手动降级为 JDK 17 + Spring Boot 3.4，确保兼容性。
-
-2. **依赖清理**：AI 引入了 `spring-ai-alibaba-starter` 依赖，该依赖在 Maven 仓库中找不到（1.0.0.2 版本不存在），我手动移除了该依赖及相关 OkHttp、Spring AI 仓库配置。
-
-3. **Ollama 移除**：AI 初始实现包含 Ollama 本地模型调用，按要求移除了 Ollama 相关代码和配置，仅保留 Mock 模式，并创建了 LlamaCppAiServiceImpl 作为备份参考。
-
-4. **敏感配置处理**：AI 初始将数据库密码硬编码为 `123456`，我改为使用 `${DB_PASSWORD:}` 环境变量占位符，避免敏感信息入库。
-
-5. **接口设计审查**：检查了所有接口的请求/响应格式，确认文件上传支持 PDF/DOC/DOCX 三种类型，大小限制 50MB，解析任务为异步执行。
-
-6. **异常处理**：检查了文件类型校验、大小校验、空文件校验、解析失败时的状态回滚和失败原因记录。
-
-7. **AI 提示词**：检查并优化了发送给大模型的 prompt，确保返回格式为严格 JSON。
-
-8. **异步解析**：确认了 @Async 注解的使用方式，解析失败时正确保存失败原因和更新状态。
-
----
 
 ## 敏感配置说明
 
