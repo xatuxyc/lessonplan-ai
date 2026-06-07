@@ -18,6 +18,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.hwpf.HWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,15 +38,18 @@ import java.util.UUID;
 @Service("lessonPlanService")
 public class LessonPlanServiceImpl implements LessonPlanService {
 
+    private static final Logger logger = LoggerFactory.getLogger(LessonPlanServiceImpl.class);
     private static final long MAX_FILE_SIZE = 50L * 1024 * 1024; // 50MB
-    private static final String STORAGE_PATH = "e:/code/files/lessonplan/lessonplan/";
+
+    @Value("${project.folder:e:/code/files/lessonplan/}")
+    private String storageBasePath;
 
     @Resource
     private LessonPlanMapper lessonPlanMapper;
     @Resource
     private LessonPlanParseResultMapper lessonPlanParseResultMapper;
-
-    private final LessonPlanAiService aiService = new LessonPlanAiService();
+    @Resource
+    private LessonPlanAiService aiService;
 
     @Override
     public PaginationResultVO<LessonPlan> findListByPage(LessonPlanQuery param) {
@@ -58,7 +64,6 @@ public class LessonPlanServiceImpl implements LessonPlanService {
 
     @Override
     public List<LessonPlan> findListByParam(LessonPlanQuery param) {
-        // TODO: 根据实际需求实现查询逻辑
         return lessonPlanMapper.selectList(0, 100);
     }
 
@@ -88,23 +93,24 @@ public class LessonPlanServiceImpl implements LessonPlanService {
     public LessonPlan uploadFile(String originalFilename, String fileType, Long fileSize,
                                  String uploader, File tempFile) {
         if (!FileTypeEnum.isValid(fileType)) {
-            throw new RuntimeException("不支持的文件类型");
+            throw new RuntimeException("不支持的文件类型，仅支持 PDF/DOC/DOCX");
         }
         if (fileSize > MAX_FILE_SIZE) {
-            throw new RuntimeException("文件大小超出限制");
+            throw new RuntimeException("文件大小超出50MB限制");
         }
 
         String storedName = UUID.randomUUID().toString().replace("-", "") + "." + fileType;
-        String filePath = STORAGE_PATH + storedName;
-        File dir = new File(STORAGE_PATH);
+        String folder = storageBasePath + "lessonplan/";
+        File dir = new File(folder);
         if (!dir.exists()) {
             dir.mkdirs();
         }
 
+        String filePath = folder + storedName;
         try {
             Files.copy(tempFile.toPath(), Paths.get(filePath));
         } catch (IOException e) {
-            throw new RuntimeException("保存文件失败");
+            throw new RuntimeException("保存文件失败", e);
         }
 
         LessonPlan bean = new LessonPlan();
@@ -125,19 +131,28 @@ public class LessonPlanServiceImpl implements LessonPlanService {
     public void triggerParse(Integer lessonPlanId) {
         LessonPlan lessonPlan = this.getLessonPlanById(lessonPlanId);
         if (lessonPlan == null) {
+            logger.error("教案不存在: id={}", lessonPlanId);
             return;
         }
 
+        // 更新状态为"解析中"
         LessonPlan updateBean = new LessonPlan();
         updateBean.setStatus(LessonPlanStatusEnum.PARSING.getStatus());
         lessonPlanMapper.updateById(updateBean, lessonPlanId);
 
         long startTime = System.currentTimeMillis();
         try {
+            // 提取文件文本内容
             String content = extractText(lessonPlan);
+            if (content == null || content.trim().isEmpty()) {
+                throw new RuntimeException("无法提取文件内容");
+            }
+
+            // 调用AI解析
             LessonPlanParseDto parseDto = aiService.parse(content);
             long duration = System.currentTimeMillis() - startTime;
 
+            // 保存解析结果
             LessonPlanParseResult result = new LessonPlanParseResult();
             result.setLessonPlanId(lessonPlanId);
             result.setTitle(parseDto.getTitle());
@@ -152,12 +167,18 @@ public class LessonPlanServiceImpl implements LessonPlanService {
             result.setParseTime(new Date());
             lessonPlanParseResultMapper.insert(result);
 
+            // 更新状态为"解析成功"
             LessonPlan successBean = new LessonPlan();
             successBean.setStatus(LessonPlanStatusEnum.PARSE_SUCCESS.getStatus());
             lessonPlanMapper.updateById(successBean, lessonPlanId);
+
+            logger.info("教案解析成功: id={}, 耗时={}ms, 模型={}", lessonPlanId, duration, aiService.getModelName());
+
         } catch (Exception e) {
+            logger.error("教案解析失败: id={}", lessonPlanId, e);
             long duration = System.currentTimeMillis() - startTime;
 
+            // 保存失败原因
             LessonPlanParseResult failResult = new LessonPlanParseResult();
             failResult.setLessonPlanId(lessonPlanId);
             failResult.setDuration(duration);
@@ -167,6 +188,7 @@ public class LessonPlanServiceImpl implements LessonPlanService {
             failResult.setParseTime(new Date());
             lessonPlanParseResultMapper.insert(failResult);
 
+            // 更新状态为"解析失败"
             LessonPlan failBean = new LessonPlan();
             failBean.setStatus(LessonPlanStatusEnum.PARSE_FAILED.getStatus());
             lessonPlanMapper.updateById(failBean, lessonPlanId);
@@ -181,7 +203,7 @@ public class LessonPlanServiceImpl implements LessonPlanService {
             try {
                 Files.deleteIfExists(Paths.get(lessonPlan.getFilePath()));
             } catch (IOException e) {
-                // ignore
+                logger.error("删除文件失败: {}", lessonPlan.getFilePath(), e);
             }
         }
         lessonPlanParseResultMapper.deleteByLessonPlanId(id);
@@ -201,10 +223,10 @@ public class LessonPlanServiceImpl implements LessonPlanService {
                 case "docx":
                     return extractDocxText(filePath);
                 default:
-                    throw new RuntimeException("不支持的文件类型");
+                    throw new RuntimeException("不支持的文件类型: " + fileType);
             }
         } catch (Exception e) {
-            throw new RuntimeException("文件内容提取失败: " + e.getMessage());
+            throw new RuntimeException("文件内容提取失败: " + e.getMessage(), e);
         }
     }
 

@@ -6,14 +6,19 @@ target/
 *.iml
 *.iws
 *.ipr
+.vscode/
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Temp/test files
-java.pdf
-text.html
+*.pdf
+*.html
 
 # Maven
 *.log
+
+# Sensitive
+*.env

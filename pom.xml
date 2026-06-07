@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
+        <version>3.4.5</version>
         <relativePath/>
     </parent>
 
@@ -19,7 +19,7 @@
     <description>教案文件上传 + AI 辅助解析模块</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>17</java.version>
         <mybatis.version>3.0.5</mybatis.version>
     </properties>
 

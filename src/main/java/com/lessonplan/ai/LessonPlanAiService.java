@@ -2,37 +2,24 @@ package com.lessonplan.ai;
 
 import com.lessonplan.entity.dto.LessonPlanParseDto;
 
-import java.util.Arrays;
+/**
+ * AI解析服务接口
+ * 当前仅提供Mock实现，后续可扩展接入llama.cpp等本地模型
+ */
+public interface LessonPlanAiService {
 
-public class LessonPlanAiService {
+    /**
+     * 解析教案文本内容，返回结构化结果
+     */
+    LessonPlanParseDto parse(String content);
 
-    public LessonPlanParseDto parse(String content) {
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    /**
+     * 获取当前使用的模型名称
+     */
+    String getModelName();
 
-        LessonPlanParseDto dto = new LessonPlanParseDto();
-        dto.setTitle("【Mock】教案标题 - 基于内容的模拟解析");
-        dto.setGradeLevel("小学五年级");
-        dto.setSubject("语文");
-        dto.setTeachingObjectives(Arrays.asList(
-                "理解课文主要内容，体会作者表达的思想感情",
-                "掌握本课生字新词，能正确读写并运用",
-                "学习文章的写作手法，提高写作能力",
-                "培养阅读兴趣和良好的阅读习惯"
-        ));
-        dto.setKeywords(Arrays.asList("阅读理解", "写作手法", "生字新词", "思想感情", "阅读习惯"));
-        dto.setSummary("本教案围绕课文阅读理解展开，通过生字词教学、内容分析、写作手法学习等环节，帮助学生深入理解课文，提升语文综合素养。");
-        return dto;
-    }
-
-    public String getModelName() {
-        return "mock/qwen2.5-mock";
-    }
-
-    public boolean isMock() {
-        return true;
-    }
+    /**
+     * 是否为mock实现
+     */
+    boolean isMock();
 }
